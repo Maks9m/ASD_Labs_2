@@ -1,43 +1,124 @@
-#include <stdio.h>;
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-int r1(int x, int n, int F);
-int r2(int x, int n);
-int r3(int x, int n);
+typedef struct{
+    double F;
+    double S;
+} Result;
 
-#define RECURSION_SIZE 3
+double r1(double x, int n, int i, double F, double S);
+double r3(double x, int n, int i, double F);
+Result r2(double x, int n, int i);
+double loop(double x, int n, double S);
 
 int main()
 {
-    int x, n;
-    int (*recursion[3])(int,int) = {r1, r2, r3};
+    double x = 5;
+    int n = 20;
+    int i = 1;
+    double F = x;
+    double S = x;
 
-    printf("Enter x: ");
-    scanf("%d", &x);
-    printf("Enter n: ");
-    scanf("%d", &n);
-    for (int i = 0; i < RECURSION_SIZE; i++)
-    {
-        printf("Result: %d", recursion[i](x, n));
-    }
+    printf("\n%*s\n", 25, "---First method---");
+    r1(x, n, i, F, S);
+    printf("\n%*s\n", 25, "---Second method---");
+    r2(x, n, n);
+    printf("\n%*s\n", 25, "---Third method---");
+    r3(x, n, i, F);
+    printf("\n%*s\n", 25, "---Loop method---");
+    loop(x, n, S);
 }
 
-int r1(int x, int n, int F)
+double r1(double x, int n, int i, double F, double S) // Виконує обчислення n членів ряду, і суми на рекурсивному спуску
 {
-    if (n == 0)
+    if (fabs(x) < 1000000)
     {
-        F = x;
+        printf("i = %d, F = %lf, S = %lf\n", i, F, S);
+        if (n == 1)
+        {
+            return S;
+        }
+        else
+        {
+            F *= ((x*x) / (4*i*i + 2*i));
+            S += F;
+            return r1(x, n - 1, i + 1, F, S);
+        }
     }
     else
     {
-        F = (x*x)*r1(x, n-1, F)/(4*n*n+2*n);
+        printf("Error: x is out of range\n");
+        return 0;
     }
-    return F;
 }
 
-int r2(int x, int n)
+Result r2(double x, int n, int i) // Виконує обчислення n членів ряду, і суми на рекурсивному поверненні
 {
+    if (fabs(x) < 1000000)
+    {
+        Result res;
+        if (i == 1)
+        {
+            res.F = x;
+            res.S = x;
+            printf("i = %d, F = %lf, S = %lf\n", i, res.F, res.S);
+            return res;
+        }
+        
+        Result prev = r2(x, n, i - 1);
+        res.F = prev.F * (x*x) / (4*(i-1)*(i-1) + 2*(i-1));
+        res.S = prev.S + res.F;
+        printf("i = %d, F = %lf, S = %lf\n", i, res.F, res.S);
+        return res;
+    }
+    else
+    {
+        printf("Error: x is out of range\n");
+        return (Result){0, 0};
+    }
 }
 
-int r3(int x, int n)
+double r3(double x, int n, int i, double F) // Виконує обчислення членів ряду на рекурсивному спуску, а обчислення суми на рекурсивному поверненні
 {
+    if (fabs(x) < 1000000)
+    {
+        double S;
+        if (i == n)
+        {
+            S = F;
+            printf("i = %d, F = %lf, S = %lf\n", i, F, S);
+            return S;
+        }
+        
+        S = r3(x, n, i + 1, F*(x*x) / (4*i*i + 2*i));
+        S += F;
+        printf("i = %d, F = %lf, S = %lf\n", i, F, S);
+        return S;
+    }
+    else
+    {
+        printf("Error: x is out of range\n");
+        return 0;
+    }
+}
+
+double loop (double x, int n, double S) // Виконує обчислення n членів ряду, і суми на циклі
+{
+    if (fabs(x) < 1000000)
+    {
+        double F = x;
+        for (int i = 1; i <= n; i++)
+        {
+            printf("i = %d, F = %lf, S = %lf\n", i, F, S);
+            F *= ((x*x) / (4*i*i + 2*i));
+            S += F;
+        }
+        return S;
+    }
+    else
+    {
+        printf("Error: x is out of range\n");
+        return 0;
+    }
 }
