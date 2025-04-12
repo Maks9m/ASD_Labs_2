@@ -67,4 +67,4 @@ print()
 
 print(f"Total Weight of Minimum Spanning Tree: {total_weight}")
 
-draw_graph(undir, directed=False, title="Undirected Graph", weight_matrix=W, spanning_tree=MST)
+draw_graph(undir, directed=False, title="Minimum Spanning Tree", weight_matrix=W, spanning_tree=MST)
