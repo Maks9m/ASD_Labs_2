@@ -9,23 +9,6 @@ def print_matrix(matrix, title="Matrix", line_length=1):
         print(" ".join(f"{num:{line_length}}" for num in row))  # Each number is line_length characters wide
     print()
 
-def matrix_multiply(undir, B):
-    n = len(undir)
-    result = [[0] * n for _ in range(n)]
-    for i in range(n):
-        for j in range(n):
-            for k in range(n):
-                result[i][j] += undir[i][k] * B[k][j]
-    return result
-
-def matrix_add(A, B):
-    n = len(A)
-    result = [[0] * n for _ in range(n)]
-    for i in range(n):
-        for j in range(n):
-            result[i][j] = A[i][j] + B[i][j]
-    return result
-
 def get_dir(n, k):
     result = [[0] * n for _ in range(n)]
     for i in range(n):

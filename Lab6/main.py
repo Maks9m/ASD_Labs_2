@@ -6,7 +6,7 @@ n2 = 2
 n3 = 1
 n4 = 7
 
-n = n3 + 4
+n = n3 + 10
 
 k = 1.0 - n3 * 0.01 - n4 * 0.005 - 0.05
 
@@ -30,4 +30,34 @@ print_matrix(H, "H Matrix")
 W = get_W(C, D, H)
 print_matrix(W, "W Matrix", 3)
 
-draw_graph(undir, directed=False, title="Undirected Graph", weight_matrix=W)
+def get_MinimumSpanningTree(W):
+    n = len(W)
+    in_mst = [False] * n
+    MST = list()
+    
+    in_mst[0] = True
+    
+    for _ in range(n-1):
+        min_weight = math.inf
+        min_edge = (-1, -1)
+
+        for u in range(n):
+            if in_mst[u]:
+                for v in range(n):
+                    if not in_mst[v] and W[u][v] != math.inf and W[u][v] < min_weight:
+                        min_weight = W[u][v]
+                        min_edge = (u, v)
+        
+        if min_edge[0] != -1:
+            MST.append(min_edge)
+            in_mst[min_edge[1]] = True
+
+    return MST
+
+MST = get_MinimumSpanningTree(W)
+
+print("Minimum Spanning Tree Edges:")
+for edge in MST:
+    print(f"{edge[0] + 1} - {edge[1] + 1}")
+
+draw_graph(undir, directed=False, title="Undirected Graph", weight_matrix=W, spanning_tree=MST)
