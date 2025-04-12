@@ -2,8 +2,6 @@ import math
 import random
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-import matplotlib
-from functools import partial
 
 random.seed(4217)
 
@@ -53,69 +51,6 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
         plt.scatter(x, y, s=500, color=color, edgecolor="black", linewidth=1, zorder=2)
         plt.text(x, y, str(i + 1), fontsize=12, ha="center", va="center", zorder=4)
     
-    # Function to draw an edge
-    def draw_edge(i, j, x1, y1, x2, y2, edge_color, edge_width=1.0, draw_weight=False):
-        dx, dy = x2 - x1, y2 - y1
-        length = math.sqrt(dx ** 2 + dy ** 2)
-        x1, y1, x2, y2 = adjust_for_R(x1, y1, x2, y2, node_R)
-        
-        weight_label = ""
-        if draw_weight and weight_matrix is not None and weight_matrix[i][j] != 0:
-            weight_label = str(weight_matrix[i][j])
-        
-        # Draw edges that would pass through center
-        if (length >= 2*(R - node_R) and length <= 2*(R + node_R)):
-            norm_dx, norm_dy = dx / length, dy / length
-            perp_x, perp_y = -norm_dy, norm_dx
-            curve_factor = 3.0 + random.uniform(-0.5, 0.5)
-            midx = (x1 + x2) / 2 + perp_x * curve_factor
-            midy = (y1 + y2) / 2 + perp_y * curve_factor
-            t_values = [0, 0.25, 0.5, 0.75, 1.0]
-            curve_x = []
-            curve_y = []
-            
-            for t in t_values:
-                bx = (1-t)**2 * x1 + 2*(1-t)*t * midx + t**2 * x2
-                by = (1-t)**2 * y1 + 2*(1-t)*t * midy + t**2 * y2
-                curve_x.append(bx)
-                curve_y.append(by)
-            
-            if directed:
-                plt.plot(curve_x[:-1], curve_y[:-1], color=edge_color, linewidth=edge_width, zorder=1)
-                last_segment_x = curve_x[-2]
-                last_segment_y = curve_y[-2]
-                plt.arrow(last_segment_x, last_segment_y, 
-                        curve_x[-1] - last_segment_x, 
-                        curve_y[-1] - last_segment_y, 
-                        head_width=0.30, length_includes_head=True, 
-                        color=edge_color, linewidth=edge_width, zorder=4)
-            else:
-                plt.plot(curve_x, curve_y, color=edge_color, linewidth=edge_width, zorder=1)
-            
-            # Add weight label for curved edge
-            if draw_weight and weight_label:
-                mid_t = 0.5
-                label_x = (1-mid_t)**2 * x1 + 2*(1-mid_t)*mid_t * midx + mid_t**2 * x2
-                label_y = (1-mid_t)**2 * y1 + 2*(1-mid_t)*mid_t * midy + mid_t**2 * y2
-                plt.text(label_x, label_y, weight_label, fontsize=10, ha="center", va="center",
-                        bbox=dict(facecolor=edge_color, alpha=0.6, edgecolor=edge_color), zorder=5)
-            return True
-        
-        # Draw direct edges
-        if directed:
-            plt.arrow(x1, y1, x2 - x1, y2 - y1, head_width=0.30, length_includes_head=True, 
-                    color=edge_color, linewidth=edge_width, zorder=4)
-        else:
-            plt.plot([x1, x2], [y1, y2], color=edge_color, linewidth=edge_width, zorder=1)
-            
-        # Add weight label for straight edge
-        if draw_weight and weight_label:
-            label_x = (x1 + x2) / 2
-            label_y = (y1 + y2) / 2
-            plt.text(label_x, label_y, weight_label, fontsize=10, ha="center", va="center", 
-                    bbox=dict(facecolor=edge_color, alpha=0.7, edgecolor=edge_color), zorder=5)
-        return False
-
     # Completely revise the MST step visualization approach
     if graph_type == "mst" and steps:
         # Create a persistent figure with two axes
@@ -135,7 +70,7 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
         
         # Function to draw the step in the graph_ax
         def draw_mst_step(step_index):
-            graph_ax.clear()  # Clear only the graph area
+            graph_ax.clear()
 
             step = steps[step_index]
             mst_edges = step.get("mst_edges", []) # Assumed to be 0-indexed tuples, e.g., [(0, 1), (1, 2)]
@@ -159,23 +94,20 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
                     color = 'lightgray'  # Unvisited nodes
                 
                 graph_ax.scatter(x, y, s=500, color=color, edgecolor="black", linewidth=1, zorder=2)
-                # Display node label as 1-based (i+1)
                 graph_ax.text(x, y, str(i + 1), fontsize=12, ha="center", va="center", zorder=4)
             
             # Plot all edges
-            for i in range(len(matrix)): # i is 0-indexed
-                for j in range(len(matrix)): # j is 0-indexed
-                    if matrix[i][j] and (directed or i <= j): # Check adjacency using 0-based i, j
+            for i in range(len(matrix)):
+                for j in range(len(matrix)):
+                    if matrix[i][j] and (directed or i <= j):
                         x1, y1 = positions[i]
                         x2, y2 = positions[j]
                         
-                        # Check if this exact edge (0-indexed i, j) is part of the MST (list of 0-indexed tuples)
                         edge_in_mst = any(
                             ((i == e[0] and j == e[1]) or (i == e[1] and j == e[0]))
                             for e in mst_edges
                         )
                         
-                        # Check if this is the current edge being added (compare 0-indexed i, j with 0-indexed current_edge)
                         is_current_edge = current_edge and (
                             (i == current_edge[0] and j == current_edge[1]) or 
                             (i == current_edge[1] and j == current_edge[0])
@@ -197,7 +129,7 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
                         x1_adj, y1_adj, x2_adj, y2_adj = adjust_for_R(x1, y1, x2, y2, node_R)
                         
                         weight_label = ""
-                        if weight_matrix is not None and weight_matrix[i][j] != 0: # Access weight matrix with 0-based i, j
+                        if weight_matrix is not None and weight_matrix[i][j] != 0:
                             weight_label = str(weight_matrix[i][j])
                             
                         # If edge would pass through center, draw curved edge
@@ -264,7 +196,7 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
         draw_mst_step(0)
         
         plt.show()
-        return  # Return early to avoid the code below
+        return 
     
     # If no steps for MST, proceed with normal graph drawing
     plt.figure(figsize=(8, 8))
@@ -276,31 +208,94 @@ def draw_graph(matrix, directed=False, title=None, weight_matrix=None, spanning_
         for j in range(len(matrix)):
             # First check for self-loops to handle them specially
             if matrix[i][j] and i == j:
-                # Choose edge color based on graph type or random
                 edge_color = (random.randint(0, 235) / 255, random.randint(0, 235) / 255, random.randint(0, 235) / 255)
-                edge_color = 'black' if spanning_tree else edge_color
-                
                 # Draw self-loop for a node that connects to itself
                 x, y = positions[i]
-                loop_radius = 1  # Adjust for better visibility
+                loop_radius = 1 
                 if(x != 0 and y != 0):
                     vector_length = math.sqrt(x ** 2 + y ** 2)
-                    x += x * loop_radius / vector_length
-                    y += y * loop_radius / vector_length
+                    x_loop = x + x * loop_radius / vector_length
+                    y_loop = y + y * loop_radius / vector_length
                 else:
-                    y += loop_radius
-                loop = plt.Circle((x, y), loop_radius, color=edge_color, fill=False, zorder=1)
+                    x_loop = x
+                    y_loop = y + loop_radius
+                loop = plt.Circle((x_loop, y_loop), loop_radius, color=edge_color, fill=False, zorder=1)
                 plt.gca().add_patch(loop)
+                 # Add weight label for self-loop (optional, near the loop)
+                if weight_matrix is not None and weight_matrix[i][j] != 0:
+                    weight_label = str(weight_matrix[i][j])
+                    plt.text(x_loop, y_loop + loop_radius + 0.2, weight_label, fontsize=10, ha="center", va="bottom",
+                             bbox=dict(facecolor=edge_color, alpha=0.7, edgecolor=edge_color), zorder=5)
+
             # Then handle regular edges (for undirected, only process each edge once)
             elif matrix[i][j] and (directed or i < j):
                 edge_color = (random.randint(0, 235) / 255, random.randint(0, 235) / 255, random.randint(0, 235) / 255)
-                edge_color = 'black' if spanning_tree else edge_color
                 
                 x1, y1 = positions[i]
                 x2, y2 = positions[j]
-                draw_edge(i, j, x1, y1, x2, y2, edge_color, 1.0, True)
                 
-    plt.xlim(-15, 15)
-    plt.ylim(-15, 15)
+                # Inline edge drawing logic starts here
+                dx, dy = x2 - x1, y2 - y1
+                length = math.sqrt(dx ** 2 + dy ** 2)
+                x1_adj, y1_adj, x2_adj, y2_adj = adjust_for_R(x1, y1, x2, y2, node_R)
+                
+                weight_label = ""
+                if weight_matrix is not None and weight_matrix[i][j] != 0:
+                    weight_label = str(weight_matrix[i][j])
+                
+                # Draw edges that would pass through center (curved)
+                if (length >= 2*(R - node_R) and length <= 2*(R + node_R)):
+                    norm_dx, norm_dy = dx / length, dy / length
+                    perp_x, perp_y = -norm_dy, norm_dx
+                    curve_factor = 3.0 + random.uniform(-0.5, 0.5)
+                    midx = (x1_adj + x2_adj) / 2 + perp_x * curve_factor
+                    midy = (y1_adj + y2_adj) / 2 + perp_y * curve_factor
+                    t_values = [0, 0.25, 0.5, 0.75, 1.0]
+                    curve_x = []
+                    curve_y = []
+                    
+                    for t in t_values:
+                        bx = (1-t)**2 * x1_adj + 2*(1-t)*t * midx + t**2 * x2_adj
+                        by = (1-t)**2 * y1_adj + 2*(1-t)*t * midy + t**2 * y2_adj
+                        curve_x.append(bx)
+                        curve_y.append(by)
+                    
+                    if directed:
+                        plt.plot(curve_x[:-1], curve_y[:-1], color=edge_color, linewidth=1.0, zorder=1)
+                        last_segment_x = curve_x[-2]
+                        last_segment_y = curve_y[-2]
+                        plt.arrow(last_segment_x, last_segment_y, 
+                                curve_x[-1] - last_segment_x, 
+                                curve_y[-1] - last_segment_y, 
+                                head_width=0.30, length_includes_head=True, 
+                                color=edge_color, linewidth=1.0, zorder=4)
+                    else:
+                        plt.plot(curve_x, curve_y, color=edge_color, linewidth=1.0, zorder=1)
+                    
+                    # Add weight label for curved edge
+                    if weight_label:
+                        mid_t = 0.5
+                        label_x = (1-mid_t)**2 * x1_adj + 2*(1-mid_t)*mid_t * midx + mid_t**2 * x2_adj
+                        label_y = (1-mid_t)**2 * y1_adj + 2*(1-mid_t)*mid_t * midy + mid_t**2 * y2_adj
+                        plt.text(label_x, label_y, weight_label, fontsize=10, ha="center", va="center",
+                                bbox=dict(facecolor=edge_color, alpha=0.6, edgecolor=edge_color), zorder=5)
+                
+                # Draw direct edges (straight)
+                else:
+                    if directed:
+                        plt.arrow(x1_adj, y1_adj, x2_adj - x1_adj, y2_adj - y1_adj, head_width=0.30, length_includes_head=True, 
+                                color=edge_color, linewidth=1.0, zorder=4)
+                    else:
+                        plt.plot([x1_adj, x2_adj], [y1_adj, y2_adj], color=edge_color, linewidth=1.0, zorder=1)
+                        
+                    # Add weight label for straight edge
+                    if weight_label:
+                        label_x = (x1_adj + x2_adj) / 2
+                        label_y = (y1_adj + y2_adj) / 2
+                        plt.text(label_x, label_y, weight_label, fontsize=10, ha="center", va="center", 
+                                bbox=dict(facecolor=edge_color, alpha=0.7, edgecolor=edge_color), zorder=5)
+                
+    plt.xlim(-1,5*R, 1.5*R)
+    plt.ylim(-1.5*R, 1.5*R)
     plt.axis("off")
     plt.show()
