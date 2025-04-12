@@ -60,4 +60,13 @@ print("Minimum Spanning Tree Edges:")
 for edge in MST:
     print(f"{edge[0] + 1} - {edge[1] + 1}")
 
+def get_weight(W, MST):
+    weight = 0
+    for edge in MST:
+        weight += W[edge[0]][edge[1]]
+    return weight
+
+total_weight = get_weight(W, MST)
+print(f"Total Weight of Minimum Spanning Tree: {total_weight}")
+
 draw_graph(undir, directed=False, title="Undirected Graph", weight_matrix=W, spanning_tree=MST)
